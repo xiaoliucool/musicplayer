@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#D02090"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/song"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="歌曲"
+            android:textColor="#F5F5F5"
+            android:textColorHighlight="#FFFFFF"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/singer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="歌手"
+            android:textColor="#F5F5F5"
+            android:textColorHighlight="#FFFFFF"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/content"
+        android:paddingTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+    </FrameLayout>
+
+</LinearLayout>
