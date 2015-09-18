@@ -1,4 +1,7 @@
 package com.musicplayer.model;
+
+import android.graphics.Bitmap;
+
 /**
  * 歌曲实体类
  *@author xiaoliucool
@@ -26,6 +29,16 @@ public class Song {
 	private String size;
 	//文件路径
 	private String fileUrl;
+	//专辑图片
+	private Bitmap albumPic;
+
+	public Bitmap getAlbumPic() {
+		return albumPic;
+	}
+
+	public void setAlbumPic(Bitmap albumPic) {
+		this.albumPic = albumPic;
+	}
 
 	public String getFileName() {
 		return fileName;

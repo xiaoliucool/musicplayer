@@ -14,9 +14,11 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Adapter;
 import android.widget.FrameLayout;
@@ -27,11 +29,11 @@ import android.widget.TextView;
  * @date 2015年9月17日 下午5:22:54
  * @version 1.0 Copyright 2015 xiaoliu All right reserved
  */
-public class SongInfoActivity extends Activity {
+public class SongInfoActivity extends Activity implements OnClickListener{
 
 	private TextView songInfo;
 	private TextView singerInfo;
-	private FrameLayout content;
+	
 	private FragmentManager manager;
 	
 	private SongInfoFragment songFragment;
@@ -44,13 +46,14 @@ public class SongInfoActivity extends Activity {
 		setContentView(R.layout.song_info);
 		manager = getFragmentManager();
 		init();
+		songInfo.setOnClickListener(this);
+		singerInfo.setOnClickListener(this);
 		select(0);
 	}
 
 	private void init() {
 		songInfo = (TextView) findViewById(R.id.song);
 		singerInfo = (TextView) findViewById(R.id.singer);
-		content = (FrameLayout) findViewById(R.id.content);
 		Log.i("musicplayer", "songInfo主页 控件初始化完毕");
 	}
 
@@ -67,7 +70,12 @@ public class SongInfoActivity extends Activity {
 			}
 			break;
 		case 1:
-
+			if (null == singerFragment) {
+				singerFragment = new SingerInfoFragment();
+				transaction.add(R.id.content, singerFragment);
+			} else {
+				transaction.show(singerFragment);
+			}
 			break;
 
 		}
@@ -78,5 +86,22 @@ public class SongInfoActivity extends Activity {
 		if (songFragment!=null) {
 			transaction.hide(songFragment);
 		}
+		if (singerFragment!=null) {
+			transaction.hide(singerFragment);
+		}
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.song:
+			select(0);
+			break;
+
+		case R.id.singer:
+			select(1);
+			break;
+		}
+		
 	}
 }

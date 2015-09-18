@@ -5,30 +5,35 @@
     android:background="#ffe4b5"
     android:orientation="vertical" >
 
-    <include layout="@layout/title" 
+    <include
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="20dp"
+        layout="@layout/title" >
     </include>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:gravity="center"
         android:orientation="vertical" >
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:src="@drawable/head_portrait" />
 
         <TextView
+            android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="个人设置 >" />
     </LinearLayout>
 
     <LinearLayout
+        android:layout_gravity="center_vertical"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="20dp"
@@ -41,7 +46,6 @@
             android:padding="10dp" >
 
             <TextView
-                android:id="@+id/all_song"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
@@ -49,6 +53,7 @@
                 android:textSize="16sp" />
 
             <TextView
+                android:id="@+id/all_song"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
@@ -109,12 +114,10 @@
             android:layout_height="wrap_content"
             android:background="@drawable/default_album" />
 
-    
-
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-           	android:layout_alignParentRight="true"
+            android:layout_alignParentRight="true"
             android:background="@drawable/play_button" />
     </RelativeLayout>
 
