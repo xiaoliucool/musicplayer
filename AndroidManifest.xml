@@ -22,6 +22,7 @@
         </activity>
         <activity android:name="com.musicplayer.activity.MainActivity"></activity>
         <activity android:name="com.musicplayer.activity.SongInfoActivity"></activity>
+        <activity android:name="com.musicplayer.activity.PlayingActivity"></activity>
     </application>
 
 </manifest>

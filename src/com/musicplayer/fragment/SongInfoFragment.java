@@ -8,6 +8,7 @@ import com.baoyz.swipemenulistview.SwipeMenuItem;
 import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.baoyz.swipemenulistview.SwipeMenuListView.OnMenuItemClickListener;
 import com.musicplayer.R;
+import com.musicplayer.activity.PlayingActivity;
 import com.musicplayer.adapter.CommonAdapter;
 import com.musicplayer.adapter.ViewHolder;
 import com.musicplayer.model.Song;
@@ -15,6 +16,7 @@ import com.musicplayer.utils.AudioUtil;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -63,9 +65,11 @@ public class SongInfoFragment extends Fragment {
 		songList.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-					long arg3) {
-				// TODO Auto-generated method stub
+			public void onItemClick(AdapterView<?> parent, View view, int position,
+					long id) {
+				Intent intent = new Intent(getActivity(),PlayingActivity.class);
+				intent.putExtra("id", position);
+				startActivity(intent);
 
 			}
 		});
