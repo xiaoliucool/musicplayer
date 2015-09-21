@@ -13,6 +13,4 @@
             <nine-patch android:src="@drawable/progressbar_first" />
         </clip>
     </item>
-    
-
 </layer-list>
