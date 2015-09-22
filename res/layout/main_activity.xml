@@ -75,6 +75,7 @@
                 android:textSize="16sp" />
 
             <TextView
+                android:id="@+id/local_song_nums"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
@@ -88,6 +89,7 @@
             android:padding="18dp" >
 
             <TextView
+                android:id="@+id/my_collect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"

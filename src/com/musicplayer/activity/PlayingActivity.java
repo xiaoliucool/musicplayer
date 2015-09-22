@@ -5,15 +5,19 @@ import java.util.List;
 
 import com.musicplayer.R;
 import com.musicplayer.model.Song;
+import com.musicplayer.service.BackPlayService;
 import com.musicplayer.utils.AudioUtil;
 import com.musicplayer.utils.TimeUtil;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -63,11 +67,26 @@ public class PlayingActivity extends Activity implements OnClickListener,
 		public void run() {
 			// Log.i("子线程开始执行", "更新进度条");
 			// 获得歌曲现在播放位置并设置成播放进度条的值
-			seekBar.setProgress(mediaPlayer.getCurrentPosition());
+			seekBar.setProgress(playBinder.getProgress());
 			playTimeText.setText(TimeUtil.msec2date(seekBar.getProgress()));
 			// 每次延迟100毫秒再启动线程
 			handler.postDelayed(updateThread, 100);
 			// Log.i("子线程延迟100ms执行", "更新进度条");
+		}
+	};
+	private BackPlayService.AudioBinder playBinder;
+	private ServiceConnection conn = new ServiceConnection() {
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			playBinder = (BackPlayService.AudioBinder) service;
+			Log.i("musicplayer", "成功返回binder对象");
+			handler.post(updateThread);
 		}
 	};
 
@@ -88,6 +107,13 @@ public class PlayingActivity extends Activity implements OnClickListener,
 		getSongInfo(location);
 		setComponet();
 		initMediaPlayer(filePath);
+		Intent service = new Intent(getApplication(), BackPlayService.class);
+		service.putExtra("id", location);
+		service.putExtra("isPlaying", false);
+		startService(service);
+		bindService(service, conn, BIND_AUTO_CREATE);
+		playMusic();
+		//handler.post(updateThread);
 	}
 
 	/**
@@ -158,6 +184,24 @@ public class PlayingActivity extends Activity implements OnClickListener,
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.playing:
+			if (!isPlaying) {
+				Log.i("musicplayer", "暂停状态--》播放状态");
+				Intent service = new Intent(getApplication(),
+						BackPlayService.class);
+				service.putExtra("isPlaying", true);
+				unbindService(conn);
+				startService(service);
+				bindService(service, conn, BIND_AUTO_CREATE);
+				
+			} else {
+				Log.i("musicplayer", "播放状态--》暂停状态");
+				Intent service = new Intent(getApplication(),
+						BackPlayService.class);
+				service.putExtra("isPlaying", true);
+				unbindService(conn);
+				startService(service);
+				bindService(service, conn, BIND_AUTO_CREATE);
+			}
 			playMusic();
 			break;
 
@@ -194,30 +238,34 @@ public class PlayingActivity extends Activity implements OnClickListener,
 	 */
 	private void playMusic() {
 		if (!isPlaying) {
-			if (!mediaPlayer.isPlaying()) {
-				isPlaying = true;
-				playingButton.setBackgroundResource(R.drawable.pause_button);
-				mediaPlayer.start();
-				Log.i("musicplayer", "开始播放音乐");
-				handler.post(updateThread);
-			}
+			isPlaying = true;
+			playingButton.setBackgroundResource(R.drawable.pause_button);
+			// mediaPlayer.start();
+			// Log.i("musicplayer", "开始播放音乐");
+			// handler.post(updateThread);
+
 		} else {
-			if (mediaPlayer.isPlaying()) {
-				isPlaying = false;
-				playingButton.setBackgroundResource(R.drawable.play_button);
-				mediaPlayer.pause();
-				handler.removeCallbacks(updateThread);
-			}
+			isPlaying = false;
+			playingButton.setBackgroundResource(R.drawable.play_button);
+			// mediaPlayer.pause();
+			// handler.removeCallbacks(updateThread);
 		}
+	}
+
+	@Override
+	public void onBackPressed() {
+		handler.removeCallbacks(updateThread);
+		// Intent intent = new Intent(this, BackPlayService.class);
+		// startService(intent);
+		// bindService(intent, conn, BIND_AUTO_CREATE);
+		// finish();
+		super.onBackPressed();
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (mediaPlayer != null) {
-			mediaPlayer.stop();
-			mediaPlayer.release();
-		}
+		unbindService(conn);
 	}
 
 	@Override

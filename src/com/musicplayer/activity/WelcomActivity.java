@@ -1,6 +1,10 @@
 package com.musicplayer.activity;
 
+import java.util.List;
+
 import com.musicplayer.R;
+import com.musicplayer.model.Song;
+import com.musicplayer.utils.AudioUtil;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -15,24 +19,29 @@ import android.view.Window;
  *All     right    reserved
  */
 public class WelcomActivity extends Activity{
+	private List<Song> songs;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.welcome);
+		final Intent intent = new Intent(WelcomActivity.this,MainActivity.class);
 		new Thread(new Runnable() {
-			
 			@Override
 			public void run() {
 				try {
-					Thread.sleep(2000);
-					Intent intent = new Intent(WelcomActivity.this,MainActivity.class);
+					songs = AudioUtil.getAllSongs(getApplication());
+					Thread.sleep(500);
 					startActivity(intent);
-					finish();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
 		}).start();
+	}
+	@Override
+	protected void onPause() {
+		super.onPause();
+		finish();
 	}
 }

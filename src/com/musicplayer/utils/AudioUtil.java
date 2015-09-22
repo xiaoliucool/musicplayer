@@ -28,30 +28,30 @@ public class AudioUtil {
 	 * @param context
 	 * @return
 	 */
-	private static List<Song> songs ;
+	private static List<Song> songs;
 
 	private AudioUtil() {
 	}
 
-	public static List<Song> getAllSongs(Context context) {
-
-		Cursor cursor = context.getContentResolver().query(
-				MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-				new String[] { MediaStore.Audio.Media._ID,
-						MediaStore.Audio.Media.DISPLAY_NAME,
-						MediaStore.Audio.Media.TITLE,
-						MediaStore.Audio.Media.DURATION,
-						MediaStore.Audio.Media.ARTIST,
-						MediaStore.Audio.Media.ALBUM,
-						MediaStore.Audio.Media.YEAR,
-						MediaStore.Audio.Media.MIME_TYPE,
-						MediaStore.Audio.Media.SIZE,
-						MediaStore.Audio.Media.DATA },
-				MediaStore.Audio.Media.MIME_TYPE + "=? or "
-						+ MediaStore.Audio.Media.MIME_TYPE + "=?",
-				new String[] { "audio/mpeg", "audio/x-ms-wma" }, null);
+	public static synchronized List<Song> getAllSongs(Context context) {
 		if (songs == null) {
 			songs = new ArrayList<Song>();
+			Cursor cursor = context.getContentResolver().query(
+					MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+					new String[] { MediaStore.Audio.Media._ID,
+							MediaStore.Audio.Media.DISPLAY_NAME,
+							MediaStore.Audio.Media.TITLE,
+							MediaStore.Audio.Media.DURATION,
+							MediaStore.Audio.Media.ARTIST,
+							MediaStore.Audio.Media.ALBUM,
+							MediaStore.Audio.Media.YEAR,
+							MediaStore.Audio.Media.MIME_TYPE,
+							MediaStore.Audio.Media.SIZE,
+							MediaStore.Audio.Media.DATA },
+					MediaStore.Audio.Media.MIME_TYPE + "=? or "
+							+ MediaStore.Audio.Media.MIME_TYPE + "=?",
+					new String[] { "audio/mpeg", "audio/x-ms-wma" }, null);
+
 			if (cursor.moveToFirst()) {
 
 				Song song = null;
@@ -105,7 +105,7 @@ public class AudioUtil {
 		return songs;
 	}
 
-	private static  Bitmap getAlbumPic(final String filePath) {
+	private static Bitmap getAlbumPic(final String filePath) {
 		Bitmap bitmap = null;
 		MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 		try {
