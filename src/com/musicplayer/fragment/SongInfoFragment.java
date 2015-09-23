@@ -69,6 +69,7 @@ public class SongInfoFragment extends Fragment {
 					long id) {
 				Intent intent = new Intent(getActivity(),PlayingActivity.class);
 				intent.putExtra("id", position);
+				intent.putExtra("isFromPre", true);
 				startActivity(intent);
 
 			}

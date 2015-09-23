@@ -10,15 +10,20 @@ import com.musicplayer.utils.AudioUtil;
 import com.musicplayer.utils.TimeUtil;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -61,6 +66,11 @@ public class PlayingActivity extends Activity implements OnClickListener,
 
 	private List<Song> songs;
 	private int location;
+	private boolean isFromPreActivity;
+	private boolean isWatchingHomeKey = true;
+	private boolean isFromBackPress = true;
+	private AudioManager audioManager;
+	private boolean nextFromService;
 
 	private Handler handler = new Handler();
 	private Runnable updateThread = new Runnable() {
@@ -89,31 +99,89 @@ public class PlayingActivity extends Activity implements OnClickListener,
 			handler.post(updateThread);
 		}
 	};
+	private IntentFilter filter;
+	private HomeWatcherReciever receiver;
+
+	class HomeWatcherReciever extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			isWatchingHomeKey = false;
+			Log.i("musicplayer", "监听到home键");
+			if (intent.getAction().equals("com.xiaoliu.musicplayer.NEXT")) {
+				Log.i("musicplayer", "监听到歌曲播完了，切换到下一首");
+				if (location + 1 >= songs.size()) {
+					location = 0;
+				} else {
+					location++;
+				}
+				getSongInfo(location);
+				setComponet();
+			}
+		}
+
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.song_play);
 		songs = AudioUtil.getAllSongs(getApplication());
 		Intent intent = getIntent();
 		location = intent.getIntExtra("id", 0);
+		filter = new IntentFilter();
+		filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+		filter.addAction("com.xiaoliu.musicplayer.NEXT");
+		receiver = new HomeWatcherReciever();
+		registerReceiver(receiver, filter);
+		audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
 		init();
+		if (savedInstanceState != null) {
+			Log.i("musicplayer", "开始恢复数据");
+			location = savedInstanceState.getInt("location");
+			isFromBackPress = savedInstanceState.getBoolean("backpress");
+			getSongInfo(location);
+			setComponet();
+			Intent service = new Intent(getApplication(), BackPlayService.class);
+			service.putExtra("id", location);
+			service.putExtra("isPlaying", true);
+			startService(service);
+			bindService(service, conn, BIND_AUTO_CREATE);
+			isPlaying = false;
+			playMusic();
+		}
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putInt("location", location);
+		outState.putBoolean("backpress", false);
+		Log.i("musicplayer", "保存数据成功");
+	}
+
+	@Override
+	protected void onStart() {
+		isFromPreActivity = getIntent().getBooleanExtra("isFromPre", false);
+		super.onStart();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		getSongInfo(location);
-		setComponet();
-		initMediaPlayer(filePath);
-		Intent service = new Intent(getApplication(), BackPlayService.class);
-		service.putExtra("id", location);
-		service.putExtra("isPlaying", false);
-		startService(service);
-		bindService(service, conn, BIND_AUTO_CREATE);
-		playMusic();
-		//handler.post(updateThread);
+		if (isFromPreActivity && isWatchingHomeKey && isFromBackPress) {
+			getSongInfo(location);
+			setComponet();
+			Intent service = new Intent(getApplication(), BackPlayService.class);
+			service.putExtra("id", location);
+			service.putExtra("isPlaying", false);
+			startService(service);
+			bindService(service, conn, BIND_AUTO_CREATE);
+			isPlaying = false;
+			playMusic();
+		}
 	}
 
 	/**
@@ -182,55 +250,37 @@ public class PlayingActivity extends Activity implements OnClickListener,
 
 	@Override
 	public void onClick(View v) {
+		Intent service = new Intent(getApplication(), BackPlayService.class);
 		switch (v.getId()) {
 		case R.id.playing:
-			if (!isPlaying) {
-				Log.i("musicplayer", "暂停状态--》播放状态");
-				Intent service = new Intent(getApplication(),
-						BackPlayService.class);
-				service.putExtra("isPlaying", true);
-				unbindService(conn);
-				startService(service);
-				bindService(service, conn, BIND_AUTO_CREATE);
-				
-			} else {
-				Log.i("musicplayer", "播放状态--》暂停状态");
-				Intent service = new Intent(getApplication(),
-						BackPlayService.class);
-				service.putExtra("isPlaying", true);
-				unbindService(conn);
-				startService(service);
-				bindService(service, conn, BIND_AUTO_CREATE);
-			}
+			service.putExtra("isPlaying", true);
+			Log.i("musicplayer", "播放状态--》暂停状态");
 			playMusic();
 			break;
-
 		case R.id.playing_pre:
-			if (location == 0) {
+			if (location - 1 < 0) {
 				location = songs.size() - 1;
 			} else {
 				location--;
 			}
+			service.putExtra("isPlaying", false);
 			getSongInfo(location);
 			setComponet();
-			mediaPlayer.reset();
-			initMediaPlayer(filePath);
-			playMusic();
 			break;
 		case R.id.playing_next:
-			if (location == songs.size() - 1) {
+			if (location + 1 >= songs.size()) {
 				location = 0;
 			} else {
 				location++;
 			}
+			service.putExtra("isPlaying", false);
 			getSongInfo(location);
 			setComponet();
-			mediaPlayer.reset();
-			initMediaPlayer(filePath);
-			playMusic();
 			break;
 		}
-
+		service.putExtra("id", location);
+		startService(service);
+		bindService(service, conn, BIND_AUTO_CREATE);
 	}
 
 	/**
@@ -240,25 +290,15 @@ public class PlayingActivity extends Activity implements OnClickListener,
 		if (!isPlaying) {
 			isPlaying = true;
 			playingButton.setBackgroundResource(R.drawable.pause_button);
-			// mediaPlayer.start();
-			// Log.i("musicplayer", "开始播放音乐");
-			// handler.post(updateThread);
-
 		} else {
 			isPlaying = false;
 			playingButton.setBackgroundResource(R.drawable.play_button);
-			// mediaPlayer.pause();
-			// handler.removeCallbacks(updateThread);
 		}
 	}
 
 	@Override
 	public void onBackPressed() {
 		handler.removeCallbacks(updateThread);
-		// Intent intent = new Intent(this, BackPlayService.class);
-		// startService(intent);
-		// bindService(intent, conn, BIND_AUTO_CREATE);
-		// finish();
 		super.onBackPressed();
 	}
 
@@ -266,6 +306,7 @@ public class PlayingActivity extends Activity implements OnClickListener,
 	protected void onDestroy() {
 		super.onDestroy();
 		unbindService(conn);
+		unregisterReceiver(receiver);
 	}
 
 	@Override
@@ -273,7 +314,10 @@ public class PlayingActivity extends Activity implements OnClickListener,
 			boolean fromUser) {
 		// fromUser判断是用户改变的滑块的值
 		if (fromUser == true) {
-			mediaPlayer.seekTo(progress);
+			Log.i("musicplayer", "进度条拖动了，开始发送广播");
+			Intent broadcast = new Intent("com.xiaoliu.musicplayer");
+			broadcast.putExtra("seekTo", progress);
+			sendBroadcast(broadcast);
 		}
 	}
 

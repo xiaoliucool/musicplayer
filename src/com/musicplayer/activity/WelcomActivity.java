@@ -8,6 +8,7 @@ import com.musicplayer.utils.AudioUtil;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.view.Window;
 
@@ -19,20 +20,27 @@ import android.view.Window;
  *All     right    reserved
  */
 public class WelcomActivity extends Activity{
+	private AudioManager audioManager;
 	private List<Song> songs;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.welcome);
-		final Intent intent = new Intent(WelcomActivity.this,MainActivity.class);
+		final Intent intent = new Intent(getApplication(),MainActivity.class);
+		audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					songs = AudioUtil.getAllSongs(getApplication());
-					Thread.sleep(500);
-					startActivity(intent);
+					if (audioManager.isMusicActive()) {
+						Intent intent = new Intent(getApplication(), PlayingActivity.class);
+						startActivity(intent);
+					}else {
+						songs = AudioUtil.getAllSongs(getApplication());
+						Thread.sleep(500);
+						startActivity(intent);
+					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
