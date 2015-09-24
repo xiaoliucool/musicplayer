@@ -29,6 +29,7 @@ public class WelcomActivity extends Activity{
 		setContentView(R.layout.welcome);
 		final Intent intent = new Intent(getApplication(),MainActivity.class);
 		audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+		songs = AudioUtil.getAllSongs(getApplication());
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -37,7 +38,6 @@ public class WelcomActivity extends Activity{
 						Intent intent = new Intent(getApplication(), PlayingActivity.class);
 						startActivity(intent);
 					}else {
-						songs = AudioUtil.getAllSongs(getApplication());
 						Thread.sleep(500);
 						startActivity(intent);
 					}
@@ -48,8 +48,8 @@ public class WelcomActivity extends Activity{
 		}).start();
 	}
 	@Override
-	protected void onPause() {
-		super.onPause();
+	protected void onStop() {
 		finish();
+		super.onStop();
 	}
 }
